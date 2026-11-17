@@ -12,7 +12,11 @@ Each generated password consists of three 6-character segments separated by hyph
 Example output:
 
 ```text
-abCdef-ghijkl-m4nopq
+e9qwpf-mlldwf-jJrlff
+3dfolg-ajeOtz-learth
+faiufs-pc6aVl-oihmlf
+o8Uudu-itvlrs-nkzxxn
+qaiofq-0wvqgc-Ksytfr
 ```
 
 ## Requirements
