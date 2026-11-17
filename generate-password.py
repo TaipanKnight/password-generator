@@ -7,27 +7,30 @@ import sys
 
 _sys_random = secrets.SystemRandom()
 
-
-def generate_password():
-    """Generate a hyphen-separated password with at least one uppercase letter and one digit."""
-    lowercase_letters = string.ascii_lowercase
-    uppercase_letter = secrets.choice(string.ascii_uppercase)
-    digit = secrets.choice(string.digits)
-
-    segments = [''.join(secrets.choice(lowercase_letters) for _ in range(6)) for _ in range(3)]
-    password = '-'.join(segments)
-
-    valid_positions = [i for i, ch in enumerate(password) if ch != '-']
-    insert_positions = _sys_random.sample(valid_positions, 2)
-    password_list = list(password)
-
-    password_list[insert_positions[0]] = uppercase_letter
-    password_list[insert_positions[1]] = digit
-
-    return ''.join(password_list)
+SEGMENT_COUNT = 3
+SEGMENT_LENGTH = 6
+SEPARATOR = "-"
 
 
-def positive_int(value):
+def generate_password(
+    segments: int = SEGMENT_COUNT,
+    segment_length: int = SEGMENT_LENGTH,
+    separator: str = SEPARATOR,
+) -> str:
+    """Generate a hyphen-separated password with one uppercase letter and one digit."""
+    total_chars = segments * segment_length
+    chars = (
+        [secrets.choice(string.ascii_lowercase) for _ in range(total_chars - 2)]
+        + [secrets.choice(string.ascii_uppercase), secrets.choice(string.digits)]
+    )
+    _sys_random.shuffle(chars)
+    return separator.join(
+        "".join(chars[i : i + segment_length])
+        for i in range(0, total_chars, segment_length)
+    )
+
+
+def positive_int(value: str) -> int:
     """Parse a positive integer for CLI arguments."""
     try:
         parsed = int(value)
@@ -38,22 +41,21 @@ def positive_int(value):
     return parsed
 
 
-def prompt_password_count():
+def prompt_password_count() -> int:
     """Prompt the user until a positive integer is entered."""
     while True:
-        raw = input("How many passwords would you like to generate? ")
         try:
-            count = int(raw)
-        except ValueError:
-            print("Please enter a valid positive integer.", file=sys.stderr)
-            continue
-        if count < 1:
-            print("Please enter a number greater than 0.", file=sys.stderr)
-            continue
-        return count
+            raw = input("How many passwords would you like to generate? ")
+        except (EOFError, KeyboardInterrupt):
+            print(file=sys.stderr)
+            sys.exit(1)
+        try:
+            return positive_int(raw)
+        except argparse.ArgumentTypeError as exc:
+            print(f"Invalid input: {exc}.", file=sys.stderr)
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser(
         description="Generate hyphen-separated passwords."
@@ -67,7 +69,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def main():
+def main() -> None:
     args = parse_args()
     num_passwords = args.count if args.count is not None else prompt_password_count()
 
